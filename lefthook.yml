@@ -1,0 +1,3 @@
+pre-push:
+  commands:
+    run: pronto run --exit-code -c origin/master
