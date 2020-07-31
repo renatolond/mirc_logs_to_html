@@ -1,0 +1,10 @@
+version: 2.0
+shards:
+  admiral:
+    git: https://github.com/jwaldrip/admiral.cr.git
+    version: 1.11.2
+
+  icu:
+    git: https://github.com/olbat/icu.cr.git
+    version: 0.1.0+git.commit.83edbbc63c9e51f0a16a58c41fade72404494857
+
