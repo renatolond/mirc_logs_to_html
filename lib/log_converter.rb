@@ -14,10 +14,10 @@ module LogConverter
     unstyle: ""
   }.freeze
 
-  COLOR_REGEX = /#{COLOR_CHAR}(?<foreground>[0-9]{1,2})(,(?<background>[0-9]{1,2}))?(?<text>[^#{COLOR_CHAR}#{STYLE[:unstyle]}]*)/.freeze
-  BOLD_REGEX = /#{STYLE[:bold]}(?<text>[^#{STYLE[:bold]}#{STYLE[:unstyle]}]*)[#{STYLE[:bold]}]?(?<unstyle>[#{STYLE[:unstyle]}]?)/.freeze
-  UNDERLINE_REGEX = /#{STYLE[:underline]}(?<text>[^#{STYLE[:underline]}#{STYLE[:unstyle]}]*)[#{STYLE[:underline]}]?(?<unstyle>[#{STYLE[:unstyle]}]?)/.freeze
-  REVERSE_REGEX = /#{STYLE[:reverse]}(?<text>[^#{STYLE[:reverse]}#{STYLE[:unstyle]}]*)[#{STYLE[:reverse]}]?(?<unstyle>[#{STYLE[:unstyle]}]?)/.freeze
+  COLOR_REGEX = /#{COLOR_CHAR}(?<foreground>[0-9]{1,2})(,(?<background>[0-9]{1,2}))?(?<text>[^#{COLOR_CHAR}]*)(#{COLOR_CHAR}(?![0-9]{1,2}))?/.freeze
+  BOLD_REGEX = /#{STYLE[:bold]}(?<text>[^#{STYLE[:bold]}]*)[#{STYLE[:bold]}]?/.freeze
+  UNDERLINE_REGEX = /#{STYLE[:underline]}(?<text>[^#{STYLE[:underline]}]*)[#{STYLE[:underline]}]?/.freeze
+  REVERSE_REGEX = /#{STYLE[:reverse]}(?<text>[^#{STYLE[:reverse]}]*)[#{STYLE[:reverse]}]?/.freeze
   COLOR_HTML_PATTERN = %(<span class=\"color-f\\k<foreground>x\\k<background>\">\\k<text></span>)
 
   def self.color_convert(match, _str)
@@ -36,14 +36,14 @@ module LogConverter
     text = match["text"]
     return "" if text.blank?
 
-    "<strong>#{text}</strong>#{match["unstyle"]}"
+    "<strong>#{text}</strong>"
   end
 
   def self.underline_convert(match, _str)
     text = match["text"]
     return "" if text.blank?
 
-    "<u>#{text}</u>#{match["unstyle"]}"
+    "<u>#{text}</u>"
   end
 
   COLORS = %w[white black #00007f #009300 red #7f0000 #9c009c #fc7f00 yellow #00fc00 #009393 #00ffff #0000fc #ff00ff #7f7f7f #d2d2d2].freeze
@@ -51,7 +51,7 @@ module LogConverter
     text = match["text"]
     return "" if text.blank?
 
-    "<span class=\"reverse\">#{text}</span>#{match["unstyle"]}"
+    "<span class=\"reverse\">#{text}</span>"
   end
 
   def self.generate_colors_classes
@@ -93,12 +93,16 @@ module LogConverter
 
   def self.convert_line(line)
     line = CGI.escapeHTML(line)
-    line.gsub!(BOLD_REGEX) { |m| bold_convert($LAST_MATCH_INFO, m) }
-    line.gsub!(UNDERLINE_REGEX) { |m| underline_convert($LAST_MATCH_INFO, m) }
-    line.gsub!(REVERSE_REGEX) { |m| reverse_convert($LAST_MATCH_INFO, m) }
-    line.gsub!(COLOR_REGEX) { |m| color_convert($LAST_MATCH_INFO, m) }
-    line.tr!("#{STYLE[:unstyle]}#{COLOR_CHAR}", "")
-    line
+    groups = line.split(STYLE[:unstyle])
+    groups.map { |g| convert_group(g) }.join("")
+  end
+
+  def self.convert_group(group)
+    group.gsub!(BOLD_REGEX) { |m| bold_convert($LAST_MATCH_INFO, m) }
+    group.gsub!(UNDERLINE_REGEX) { |m| underline_convert($LAST_MATCH_INFO, m) }
+    group.gsub!(REVERSE_REGEX) { |m| reverse_convert($LAST_MATCH_INFO, m) }
+    group.gsub!(COLOR_REGEX) { |m| color_convert($LAST_MATCH_INFO, m) }
+    group
   end
 
   def self.convert_to_html(file)

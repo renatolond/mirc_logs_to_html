@@ -5,7 +5,7 @@ source "https://rubygems.org"
 gem "activesupport", require: false # To have blank? and present?
 gem "charlock_holmes", "~> 0.7" # Used to detect file encodings
 
-group :development do
+group :development, :test do
   gem "lefthook", require: false
   gem "pronto", require: false, github: "prontolabs/pronto"
   gem "pronto-rubocop", require: false
