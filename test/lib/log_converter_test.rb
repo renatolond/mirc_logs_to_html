@@ -35,5 +35,16 @@ describe LogConverter do
       line = "Test."
       assert_equal expected_line, subject.convert_line(line)
     end
+    it "Changes foreground without changing background" do
+      expected_line = '<span class="color-f6-b1">testing</span><span class="color-f0-b1">test</span>'
+      line = "6,1testing0test"
+      assert_equal expected_line, subject.convert_line(line)
+    end
+
+    it "Has everything mixed up" do
+      expected_line = '<strong><span class="reverse"><u>Test.</u>---</span>---</strong>.'
+      line = "Test.------."
+      assert_equal expected_line, subject.convert_line(line)
+    end
   end
 end
